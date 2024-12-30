@@ -1,0 +1,19 @@
+name: PingIndexer
+description: My first rindexer project
+repository: https://github.com/joshstevens19/rindexer
+project_type: no-code
+networks:
+  - name: lensTestnet
+    chain_id: 37111
+    rpc: https://rpc.testnet.lens.dev
+storage:
+  postgres:
+    enabled: true
+contracts:
+  - name: Ping
+    details:
+      - network: lensTestnet
+        address: 0xb7462EaCd5487514b6b789CF1Fca3081020F4e21
+    abi: ./ping.abi.json
+    include_events:
+      - Pong
