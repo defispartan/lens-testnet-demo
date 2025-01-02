@@ -20,23 +20,22 @@ function abbreviateAddress(address: string) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export function PongEventsTable() {
+export function PongEventsTable({ txHash }: { txHash: string | null }) {
   const [pongs, setPongs] = useState<Pong[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPongs = async () => {
-      try {
-        const response = await fetch(
-          "https://lens-testnet-demo-production.up.railway.app/graphql",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              query: `
+  const fetchPongs = async () => {
+    try {
+      const response = await fetch(
+        "https://lens-testnet-demo-production.up.railway.app/graphql",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
               query AllPings {
                 allPongs {
                   nodes {
@@ -46,26 +45,49 @@ export function PongEventsTable() {
                 }
               }
             `,
-            }),
-          }
-        );
+          }),
+        }
+      );
 
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const data = await response.json();
+      setPongs(data.data.allPongs.nodes);
+    } catch (err) {
+      setError("Failed to fetch pong events");
+      console.error("Error fetching pong events:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const pollForTransaction = async () => {
+      const maxRetries = 10;
+      const delay = 2000; // 2 seconds
+      let retries = 0;
+
+      while (retries < maxRetries) {
+        await fetchPongs();
+
+        const transactionExists = pongs.some((pong) => pong.txHash === txHash);
+        if (transactionExists || !txHash) {
+          break;
         }
 
-        const data = await response.json();
-        setPongs(data.data.allPongs.nodes);
-      } catch (err) {
-        setError("Failed to fetch pong events");
-        console.error("Error fetching pong events:", err);
-      } finally {
-        setLoading(false);
+        retries++;
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     };
 
-    fetchPongs();
-  }, []);
+    if (txHash) {
+      pollForTransaction();
+    } else {
+      fetchPongs();
+    }
+  }, [pongs, txHash]);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -79,6 +101,7 @@ export function PongEventsTable() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>#</TableHead>
               <TableHead>Sender</TableHead>
               <TableHead>Transaction Hash</TableHead>
             </TableRow>
@@ -86,6 +109,7 @@ export function PongEventsTable() {
           <TableBody>
             {pongs.map((pong, index) => (
               <TableRow key={index}>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>
                   <a
                     href={`https://block-explorer.testnet.lens.dev/address/${pong.sender}`}

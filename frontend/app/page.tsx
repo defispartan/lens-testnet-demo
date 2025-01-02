@@ -1,11 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { PongEventsTable } from "@/components/PongEventsTable";
 import { ConnectKitButton } from "connectkit";
 import { Web3Provider } from "@/components/Web3Provider";
 import { PingButton } from "@/components/PingButton";
 
 export default function Page() {
+  const [txHash, setTxHash] = useState<string | null>(null);
+
+  const handleTransactionConfirmed = (hash: string) => {
+    setTxHash(hash);
+  };
+
   return (
     <Web3Provider>
       <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background text-foreground">
@@ -16,9 +23,9 @@ export default function Page() {
           <div className="mt-5">
             <ConnectKitButton />
           </div>
-          <PingButton />
+          <PingButton onTransactionConfirmed={handleTransactionConfirmed} />
         </div>
-        <PongEventsTable />
+        <PongEventsTable txHash={txHash} />
       </div>
     </Web3Provider>
   );

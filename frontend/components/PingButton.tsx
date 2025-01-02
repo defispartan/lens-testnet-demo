@@ -2,19 +2,32 @@ import { pingAbi } from "@/utils/pingAbi";
 import { Button } from "./ui/button";
 import { useAccount, useWriteContract, useSwitchChain } from "wagmi";
 import { lensTestnet } from "@/utils/lensTestnet";
+import { useEffect } from "react";
 
-export function PingButton() {
+export function PingButton({
+  onTransactionConfirmed,
+}: {
+  onTransactionConfirmed: (txHash: string) => void;
+}) {
   const { address, chainId: activeChainId } = useAccount();
   const { switchChain } = useSwitchChain();
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const {
+    writeContract,
+    data: txHash,
+    isPending,
+    isSuccess,
+  } = useWriteContract();
 
   const lensTestnetId = lensTestnet.id;
-
   const isCorrectNetwork = activeChainId === lensTestnetId;
 
-  if (!address) {
-    return <></>;
-  }
+  useEffect(() => {
+    if (isSuccess && txHash) {
+      onTransactionConfirmed(txHash);
+    }
+  }, [isSuccess, onTransactionConfirmed, txHash]);
+
+  if (!address) return null;
 
   return (
     <>
@@ -49,10 +62,10 @@ export function PingButton() {
           Send Ping
         </Button>
       )}
-      {!!isPending && <div className="mt-4">Pending...</div>}
-      {!!hash && (
+      {isPending && <div className="mt-4">Pending...</div>}
+      {txHash && (
         <div className="mt-4">
-          <a href={lensTestnet.blockExplorers![0] + "/tx/" + hash}>
+          <a href={lensTestnet.blockExplorers![0] + "/tx/" + txHash}>
             View Transaction
           </a>
         </div>
