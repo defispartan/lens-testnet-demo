@@ -2,13 +2,13 @@ import { WagmiProvider, createConfig, http } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { ReactNode } from "react";
-import { lensTestnet } from "@/utils/lensTestnet";
+import { chains } from "@lens-network/sdk/viem";
 
 const config = createConfig(
   getDefaultConfig({
-    chains: [lensTestnet],
+    chains: [chains.testnet],
     transports: {
-      [lensTestnet.id]: http(`https://rpc.testnet.lens.dev`),
+      [chains.testnet.id]: http(`https://rpc.testnet.lens.dev`),
     },
 
     // Required API Keys

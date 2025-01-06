@@ -1,7 +1,7 @@
 import { pingAbi } from "@/utils/pingAbi";
 import { Button } from "./ui/button";
 import { useAccount, useWriteContract, useSwitchChain } from "wagmi";
-import { lensTestnet } from "@/utils/lensTestnet";
+import { chains } from "@lens-network/sdk/viem";
 import { useEffect } from "react";
 
 export function PingButton({
@@ -18,7 +18,7 @@ export function PingButton({
     isSuccess,
   } = useWriteContract();
 
-  const lensTestnetId = lensTestnet.id;
+  const lensTestnetId = chains.testnet.id;
   const isCorrectNetwork = activeChainId === lensTestnetId;
 
   useEffect(() => {
@@ -65,7 +65,9 @@ export function PingButton({
       {isPending && <div className="mt-4">Pending...</div>}
       {txHash && (
         <div className="mt-4">
-          <a href={lensTestnet.blockExplorers![0] + "/tx/" + txHash}>
+          <a
+            href={chains.testnet.blockExplorers!.default.url + "/tx/" + txHash}
+          >
             View Transaction
           </a>
         </div>
